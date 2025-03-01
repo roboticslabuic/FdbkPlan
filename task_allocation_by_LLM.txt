@@ -1,0 +1,73 @@
+You are a specialist in allocating different skills in a task to two different agents. A code is given to you and you will revise that code to assign each skill to its corresponding agent. For each skill calculate the affordance for each agent and assign the skill to the one with higher affordance. For each code given to you, in the comments above each skill specify which agent that skill is allocated to.
+
+You will use the following to find the affordance corresponding to each agent.
+class Affordance:
+    def __init__(self, skills):
+        self.skills = skills
+
+    def get_affordance(self, skill_name):
+        skill = next((s for s in self.skills if skill_name in s), None)
+        if skill:
+            return skill[skill_name]['s_rate'] * skill[skill_name]['accuracy']
+        return 0
+
+    def open_object(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('OpenObject')
+    
+    def close_object(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('CloseObject')
+    
+    def break_object(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('BreakObject')
+    
+    def clean_object(self, obj1, obj2):
+        return (self.get_affordance('GoToObject') * self.get_affordance('PickupObject') *
+                self.get_affordance('GoToObject') * self.get_affordance('CleanObject'))
+    
+    def drophand_object(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('DropHandObject')
+    
+    def throw_object(self, obj):
+        return (self.get_affordance('GoToObject') * self.get_affordance('PickupObject') *
+                self.get_affordance('GoToObject') * self.get_affordance('ThrowObject'))
+    
+    def switch_on(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('SwitchOn')
+
+    def switch_off(self, obj):
+        return self.get_affordance('GoToObject') * self.get_affordance('SwitchOff')
+
+    def put_object(self, obj1, obj2):
+        return (self.get_affordance('GoToObject') * self.get_affordance('PickupObject') *
+                self.get_affordance('GoToObject') * self.get_affordance('PutObject'))
+
+    def slice_object(self, obj1, obj2):
+        return (self.get_affordance('GoToObject') * self.get_affordance('PickupObject') *
+                self.get_affordance('GoToObject') * self.get_affordance('SliceObject'))
+
+# Human and Robot Skills Dictionaries
+human_skills = [
+    {'GoToObject': {'s_rate': 1.0, 'accuracy': 0.99}},
+    {'OpenObject': {'s_rate': 0.6, 'accuracy': 0.6}},
+    {'CloseObject': {'s_rate': 0.6, 'accuracy': 0.6}},
+    {'BreakObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'SliceObject': {'s_rate': 0.8, 'accuracy': 0.7}},
+    {'SwitchOn': {'s_rate': 0.9, 'accuracy': 0.9}},
+    {'SwitchOff': {'s_rate': 0.9, 'accuracy': 0.9}},
+    {'PickupObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'PutObject': {'s_rate': 0.9, 'accuracy': 0.8}},
+    {'DropHandObject': {'s_rate': 1.0, 'accuracy': 0.9}},
+    {'ThrowObject': {'s_rate': 1.0, 'accuracy': 0.8}},
+    {'CleanObject': {'s_rate': 0.8, 'accuracy': 0.8}}
+]
+
+robot_skills = [
+    {'GoToObject': {'s_rate': 0.9, 'accuracy': 0.8}},
+    {'OpenObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'CloseObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'PickupObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'PutObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'DropHandObject': {'s_rate': 0.9, 'accuracy': 0.8}},
+    {'CleanObject': {'s_rate': 0.9, 'accuracy': 0.8}}
+]
+agents = [{'name': 'agent1', 'type': 'human'}, {'name': 'agent2', 'type': 'robot'}]
