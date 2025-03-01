@@ -1,0 +1,116 @@
+You are a Python programming specialist. A simulation environment is described to you, and you have full knowledge of objects, locations, their actionable properties, and their current state. You also know what actions are feasible in this environment. You will implement the plan provided to you as a Python program so that it's feasible inside the described environment. While implementing the Python code, you can revise the plan by adding or removing subtasks, or revising the existing subtasks if needed. You will generate the Python code of the revised plan.
+IMPORTANT: The format of the generated output MUST be the same as the previous assistant responses provided with no additional text.
+IMPORTANT: You MUST NOT use any action that is not listed in actions list provided.
+IMPORTANT: You MUST NOT use any item that is not listed in all_objects_available list.
+IMPORTANT: Do NOT use for or while loops for repetitive actions.
+IMPORTANT: Make sure the generated code doesn't have any syntax errors and ready to be processed by ast library.
+***
+Task Description: Make a meal with egg, tomato, and bread.
+SubTask 1: Break the egg in the pan and fry it on the stove.
+SubTask 2: Slice the bread and the tomato.
+SubTask 3: Wash the plate in the Sink or SinkBasin.
+SubTask 4: Serve the egg and the tomato on the plate.
+needed_objects = ['Egg' , 'EggCracked', 'Tomato', 'TomatoSliced', 'Bread', 'BreadSliced', 'Knife', 'Pan', 'Plate', 'StoveBurner', 'Sink']
+properties = {
+    'Egg': ['isBroken', 'breakable', 'isSliced', 'sliceable', 'pickupable', 'isPickedUp'], 
+    'EggCracked*': ['temperature', 'isCooked', 'cookable', 'pickupable', 'isPickedUp'],
+    'Tomato': ['sliceable', 'pickupable', 'isSliced', 'isPickedUp'], 
+    'TomatoSliced*': ['pickupable', 'isPickedUp'], 
+    'Bread': ['sliceable', 'pickupable', 'isSliced', 'isPickedUp'], 
+    'BreadSliced*': ['temperature', 'isCooked', 'cookable', 'pickupable', 'isPickedUp'],
+    'ButterKnife': ['pickupable', 'isPickedUp'], 
+    'Knife': ['pickupable', 'isPickedUp'] 
+    'Pan': ['receptacleObjectIds', 'isDirty', 'dirtyable', 'receptacle', 'pickupable', 'isPickedUp'], 
+    'Plate': ['receptacleObjectIds', 'isDirty', 'dirtyable', 'isBroken', 'receptacle', 'breakable', 'pickupable', 'isPickedUp'],
+    'StoveBurner': ['isToggled', 'receptacle', 'toggleable', 'receptacleObjectIds'],
+    'Sink': ['receptacle', 'receptacleObjectIds'], 
+    'SinkBasin': ['receptacle', 'receptacleObjectIds']
+    }
+states = [
+    {'objectId': 'Egg|-00.15|+01.01|+03.90', 'parentReceptacles': ['Fridge|-00.44|+00.01|+04.00'], 'isBroken': False, 'breakable': True, 'isSliced': False, 'sliceable': True, 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'Tomato|-02.30|+00.96|+03.80', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'sliceable': True, 'pickupable': True, 'isSliced': False, 'isPickedUp': False},
+    {'objectId': 'Bread|-01.52|+00.96|+00.28', 'parentReceptacles': ['DiningTable|-01.40|+00.01|+00.24'], 'sliceable': True, 'pickupable': True, 'isSliced': False, 'isPickedUp': False},
+    {'objectId': 'Pan|-02.61|+00.90|+03.62', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'receptacleObjectIds': [], 'isDirty': False, 'dirtyable': True, 'receptacle': True, 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'Plate|-03.01|+00.90|+03.68', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'receptacleObjectIds': [], 'isDirty': True, 'dirtyable': True, 'isBroken': False, 'receptacle': True, 'breakable': True, 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'StoveBurner|-03.15|+00.96|+02.37', 'parentReceptacles': [], 'isToggled': False, 'receptacle': True, 'toggleable': False, 'receptacleObjectIds': ['Pot|-03.14|+00.96|+02.37']},
+    {'objectId': 'StoveBurner|-03.42|+00.96|+02.37', 'parentReceptacles': [], 'isToggled': False, 'receptacle': True, 'toggleable': False, 'receptacleObjectIds': ['Pot|-03.14|+00.96|+02.37']},
+    {'objectId': 'StoveBurner|-03.42|+00.96|+01.97', 'parentReceptacles': [], 'isToggled': False, 'receptacle': True, 'toggleable': False, 'receptacleObjectIds': []},
+    {'objectId': 'StoveBurner|-03.14|+00.96|+01.97', 'parentReceptacles': [], 'isToggled': False, 'receptacle': True, 'toggleable': False, 'receptacleObjectIds': []},
+    {'objectId': 'Sink|-01.80|+00.92|+03.66', 'parentReceptacles': [], 'receptacle': False, 'receptacleObjectIds': None},
+    {'objectId': 'Sink|-01.80|+00.92|+03.66|SinkBasin', 'parentReceptacles': [], 'receptacle': True, 'receptacleObjectIds': ['ButterKnife|-01.84|+00.78|+03.68']},
+    {'objectId': 'ButterKnife|-01.84|+00.78|+03.68', 'parentReceptacles': ['Sink|-01.80|+00.92|+03.66|SinkBasin'], 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'Knife|-01.36|+00.88|+00.50', 'parentReceptacles': ['DiningTable|-01.40|+00.01|+00.24'], 'pickupable': True, 'isPickedUp': False}
+    ]
+context_interactions = {
+    'Egg': 'Using the Slice action or the Break action will change the Egg to an EggCracked object. Dropping or Throwing the Egg with enough force will also automatically Break the egg into an EggCracked.', 'EggCracked*': 'Placing an EggCracked object onto an active StoveBurner will automatically cook it. Placing an EggCracked object into a Microwave, and then turning on the Microwave will automatically cook it.', 
+    'Tomato': 'When Sliced, will create multiple TomatoSliced objects.', 
+    'BreadSliced*': 'Use PutObject action to place BreadSliced into Toaster objects. If the Toaster is on, the BreadSliced will automatically cook. BreadSliced will also automatically cook if moved over an active StoveBurner object.', 
+    'Pan': 'If in the Dirty state, will automatically become Clean if moved under running water.', 
+    'Plate': 'Will automatically break if subjected to enough force. Not all Plates are breakable (Plastic-Unbreakable vs Glass-Breakable vs Ceramic-Breakable). If in the Dirty state, will automatically become Clean if moved under running water.', 
+    'StoveBurner': 'While this object type can be turned on/off, the ToggleObjectOn and ToggleObjectOff actions will not work on it directly. All StoveBurners are controlled by the on/off state of a StoveKnob object. Turning on/off the StoveKnob will automatically turn on/off the StoveBurner that it is linked to. Objects placed over an active StoveBurner will have their temperature changed to Hot. Some objects can be automatically cooked over an active StoveBurner (Potato, BreadSliced). StoveBurners are receptacles but only allow objects of type Pot, Pan, and Kettle to be placed on them directly. StoveBurners are also sources of fire and can light Candles if the wick of the candle is moved over the burner'}
+actions = [
+        "OpenObject <objectId>", 
+        "CloseObject <objectId>", 
+        "BreakObject <objectId>", 
+        "SliceObject <objectId><toolObjectId>", 
+        "SwitchOn <objectId>", 
+        "SwitchOff <objectId>", 
+        "CleanObject <objectId><toolObjectId><canBeUsedUpDetergentId>", 
+        "PutObject <objectId><receptacleObjectId>", 
+        "ThrowObject <objectId>"
+        ]
+all_objects_available = [
+                        'Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup',
+                        'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato'
+                        ]
+IMPORTANT: Some objects are created from a source object after certain actions. For example, PotatoSliced objects are generated after a Potato object has had the Slice action used on it. Object Types that have a (*) next to them are only referenced after an interaction. For instance, Apple becomes AppleSliced once the Slice action has been applied to the Apple. Objects with a (*) in the properties dictionary don't exist in the scene but could exist after performing actions on objects existing in the scene.
+IMPORTANT: Do NOT include action "CleanObject <objectId><toolObjectId><canBeUsedUpDetergentId>" in the plan if you cannot find any cleaning tool <toolObjectId> in this scene. However, <canBeUsedUpDetergentId> is not necessary for cleaning action, use it if you can find a Detergent in the scene with the states 'canBeUsedUp'=True and 'UsedUp'=False, otherwise, <toolObjectId> would be enough.
+***
+def cook_egg():
+    ### SubTask 1: Break the egg in the pan and fry it. ###
+    # Open the fridge to access the egg.
+    OpenObject('Fridge|-00.44|+00.01|+04.00')
+    # Retreive the egg and put it in the pan.
+    PutObject('Egg|-00.15|+01.01|+03.90', 'Pan|-02.61|+00.90|+03.62')
+    # Close the fridge.
+    CloseObject('Fridge|-00.44|+00.01|+04.00')
+    # Break the egg.
+    BreakObject('Egg|-00.15|+01.01|+03.90')
+    # Place the pan on an empty StoveBurner. 
+    PutObject('Pan|-02.61|+00.90|+03.62', 'StoveBurner|-03.14|+00.96|+01.97')
+    # Switch on the StoveBurner.
+    SwitchOn('StoveKnob')
+    # Wait for the egg to cook.
+    time.sleep(5)
+    # Switch off the StoveBurner.
+    SwitchOff('StoveKnob')
+
+def slice_ingredients():
+    ### SubTask 2: Slice the bread and the tomato.
+    # Slice the bread.
+    SliceObject('Bread|-01.52|+00.96|+00.28', 'Knife|-01.36|+00.88|+00.50')
+    # Slice the tomato.
+    SliceObject('Tomato|-02.30|+00.96|+03.80', 'Knife|-01.36|+00.88|+00.50')
+
+def wash_plate():
+    ### SubTask 3: Wash the plate. ###
+    # Remove the ButterKnife from the SinkBasin to be able to wash the plate in it.
+    PutObject('ButterKnife|-01.84|+00.78|+03.68', 'Floor')
+    # Put the plate in the Sinkbasin.
+    PutObject('Plate|-03.01|+00.90|+03.68', 'Sink|-01.80|+00.92|+03.66|SinkBasin')
+    # Switch on the Faucet to clean the plate.
+    SwitchOn('Faucet')
+    # Wait for a while to let the plate clean.
+    time.sleep(5)
+    # Switch off the Faucet
+    SwitchOff('Faucet')
+
+def serve_meal():
+    ### SubTask 4: Serve the egg and the tomato on the plate. ###
+    # Place the table on the diningtable.
+    PutObject('Plate|-03.01|+00.90|+03.68', 'DiningTable')
+    # Place a slice of bread on the plate.
+    PutObject('BreadSliced', 'Plate|-03.01|+00.90|+03.68')
+    # Place a slice of tomato on the plate.
+    PutObject('TomatoSliced', 'Plate|-03.01|+00.90|+03.68')
+***
