@@ -1,4 +1,4 @@
-# Running Experiments with LLM
+# Running Experiments with IteraPlan
 
 ## Running `plan_with_llm.py`
 To execute the script, use the following command:
