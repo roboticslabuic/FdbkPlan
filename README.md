@@ -1,3 +1,5 @@
+![Description](overview.png)
+
 # Running Experiments with IteraPlan
 
 ## Running `plan_with_llm.py`
