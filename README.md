@@ -15,13 +15,46 @@
   </p>
 </blockquote>
 
+# **Installation and Setup**  
+
+### **1. Install AI2-THOR**
+IteraPlan uses **AI2-THOR**, a simulation framework for embodied AI research. To set up AI2-THOR using Docker, follow the instructions provided in the official [AI2-THOR Docker Documentation](https://github.com/allenai/ai2thor-docker.git).
+
+Make sure to adjust the **Ubuntu** and **CUDA** versions in the Dockerfile according to your system’s configuration.
+
+**Important**: In the Dockerfile, ensure you include the following:
+
+```bash
+RUN mkdir -p /app/IteraPlan
+```
+This will create the necessary directory for mounting your IteraPlan code into the container.
+
+
+### **2. Clone This Repository**
+Clone the IteraPlan repository to your local machine:
+
+```bash
+git clone https://github.com/roboticslabuic/IteraPlan.git
+cd IteraPlan
+```
+
+### **3. Run AI2-THOR with GPU Support in Docker**
+Once you have cloned the repository, run the following command to start the AI2-THOR container with GPU support:
+
+```bash
+sudo docker run --rm --runtime=nvidia --gpus all -it --mount src="$(pwd)",target=/app/IteraPlan,type=bind ai2thor-docker:latest
+```
+This command mounts your current working directory ($(pwd)) to /app/IteraPlan inside the container, ensuring that changes to files in your repository are reflected in the container.
+
 # Running Experiments with IteraPlan
+Once you have started the AI2-THOR container and are inside the container, do the following:
 
 ## Running `plan_with_llm.py`
 To execute the script, use the following command:
 
 ```bash
-python3 scripts/plan_with_llm.py --floor-plan <floor-plan-id> --exp-id <exp-id> --exp-instruction "exp-instruction"
+cd IteraPlan
+python3 scripts/plan_with_llm_v1.py --floor-plan <floor-plan-id> --exp-id <exp-id> --exp-instruction "exp-instruction"
 ```
 
 ## Creating an Executable Python Script
