@@ -6,7 +6,6 @@ You are responsible for doing the reasoning to determine what objects are needed
 IMPORTANT: You MUST NOT use any item that is not listed in the floorplan.
 IMPORTANT: The format of the generated output MUST be the same as the previous assitance responses provided with no additional text.
 
- 
 You are in a floorplan containing the following objects and locations:
 ['Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup', 'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato']
 The instruction: I feel hungry, what would you plan to do?

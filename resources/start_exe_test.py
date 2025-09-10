@@ -414,6 +414,7 @@ def PutObject(agent, put_obj, recp):
     # metadata = c.last_event.events[agent_id].metadata
     # agent_location = [metadata["agent"]["position"]["x"], metadata["agent"]["position"]["y"], metadata["agent"]["position"]["z"]]
     # dist_to_recp = 9999999 # distance b/w agent and the recp obj
+    print(recp)
     if '|' in recp:
         recp_obj_id = recp
     else:
