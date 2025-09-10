@@ -10,7 +10,14 @@ You are in a floorplan containing the following objects and locations:
 ['Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup', 'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato']
 The instruction: I feel hungry, what would you plan to do?
 
-Task Description: Make a meal with egg and bread.
-SubTask 1: Fry the egg in a pan.
-SubTask 2: Serve the egg and the tomato on the plate.
-needed_objects = ['Egg' ,'Tomato', 'Bread', 'Pan', 'Plate']
+Task Description: Make a meal with an egg and a tomato.
+SubTask 1: Put the pan to the stove burner.
+SubTask 2: Put the egg to the pan.
+SubTask 3: Break the egg.
+SubTask 4: Turn on the stove burner.
+SubTask 5: Turn off the stove burner after the egg is cooked.
+SUbTask 6: Drop the cooked egg to the plate.
+SubTask 7: Slice the tomato.
+SubTask 8: Put the sliced tomato to the plate.
+SubTask 9: Serve the plate on the counter top.
+needed_objects = ['Egg' ,'Tomato', 'Pan', 'Plate', 'Knife', 'CounterTop']

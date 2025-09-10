@@ -90,20 +90,20 @@ def calculate_action_affordance(agent_affordance, action):
         return agent_affordance.put_object(action['object1'], action['object2'])
 
 # Human and Robot Skills Dictionaries
-# human_skills = [
-#     {'GoToObject': {'s_rate': 1.0, 'accuracy': 0.99}},
-#     {'OpenObject': {'s_rate': 0.6, 'accuracy': 0.6}},
-#     {'CloseObject': {'s_rate': 0.6, 'accuracy': 0.6}},
-#     {'BreakObject': {'s_rate': 0.8, 'accuracy': 0.8}},
-#     {'SliceObject': {'s_rate': 0.8, 'accuracy': 0.7}},
-#     {'SwitchOn': {'s_rate': 0.9, 'accuracy': 0.9}},
-#     {'SwitchOff': {'s_rate': 0.9, 'accuracy': 0.9}},
-#     {'PickupObject': {'s_rate': 0.8, 'accuracy': 0.8}},
-#     {'PutObject': {'s_rate': 0.9, 'accuracy': 0.8}},
-#     {'DropHandObject': {'s_rate': 1.0, 'accuracy': 0.9}},
-#     {'ThrowObject': {'s_rate': 1.0, 'accuracy': 0.8}},
-#     {'CleanObject': {'s_rate': 0.8, 'accuracy': 0.8}}
-# ]
+human_skills = [
+    {'GoToObject': {'s_rate': 1.0, 'accuracy': 0.99}},
+    {'OpenObject': {'s_rate': 0.6, 'accuracy': 0.6}},
+    {'CloseObject': {'s_rate': 0.6, 'accuracy': 0.6}},
+    {'BreakObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'SliceObject': {'s_rate': 0.8, 'accuracy': 0.7}},
+    {'SwitchOn': {'s_rate': 0.9, 'accuracy': 0.9}},
+    {'SwitchOff': {'s_rate': 0.9, 'accuracy': 0.9}},
+    {'PickupObject': {'s_rate': 0.8, 'accuracy': 0.8}},
+    {'PutObject': {'s_rate': 0.9, 'accuracy': 0.8}},
+    {'DropHandObject': {'s_rate': 1.0, 'accuracy': 0.9}},
+    {'ThrowObject': {'s_rate': 1.0, 'accuracy': 0.8}},
+    {'CleanObject': {'s_rate': 0.8, 'accuracy': 0.8}}
+]
 
 robot_skills = [
     {'GoToObject': {'s_rate': 0.9, 'accuracy': 0.8}},
@@ -115,5 +115,4 @@ robot_skills = [
     {'CleanObject': {'s_rate': 0.9, 'accuracy': 0.8}}
 ]
 
-agents = [{'name': 'agent1', 'type': 'robot'}]
-# agents = [{'name': 'agent1', 'type': 'human'}, {'name': 'agent2', 'type': 'robot'}]
+agents = [{'name': 'agent1', 'type': 'human'}, {'name': 'agent2', 'type': 'robot'}]

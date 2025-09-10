@@ -31,8 +31,8 @@ from resources.assess_objectType import context_interactions
 agents = agents_properties.agents
 
 max_tokens = 1000
-decomp_freq_penalty = 0.1
-decomp_code_freq_penalty = 0.1
+decomp_freq_penalty = 0.02
+decomp_code_freq_penalty = 0.02
 bf_models = []
 
 def LM(prompt, model_name, max_tokens, temperature=0, stop=None, logprobs=True, frequency_penalty=0, top_p=None, top_k=None, quantize=True, quantization_bits=4):
@@ -705,7 +705,7 @@ if __name__ == "__main__":
     # print (prompt)         
     messages = [{"role": "system", "content": allocate_prompt},
                 {"role": "user", "content": prompt}]
-    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.1, quantize=args.quantize, quantization_bits=args.quantization_bits) #0.30 #1800 for gpt4o
+    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.02, quantize=args.quantize, quantization_bits=args.quantization_bits) #0.30 #1800 for gpt4o
 
     print (f"\n############################################# LLM Response #############################################################")
     print(text)
@@ -718,7 +718,7 @@ if __name__ == "__main__":
 
         messages.append({"role": "assistant", "content": text})
         messages.append({"role": "user", "content": additional_instructions})
-        _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.1, quantize=args.quantize, quantization_bits=args.quantization_bits)
+        _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.02, quantize=args.quantize, quantization_bits=args.quantization_bits)
 
         print(f"\n############################################# Updated LLM Response #############################################################")
         print(text)
