@@ -30,9 +30,9 @@ from resources.assess_objectType import actionable_properties
 from resources.assess_objectType import context_interactions
 agents = agents_properties.agents
 
-max_tokens = 1000
-decomp_freq_penalty = 0.02
-decomp_code_freq_penalty = 0.02
+max_tokens = 2048
+decomp_freq_penalty = 0.05
+decomp_code_freq_penalty = 0.05
 bf_models = []
 
 def LM(prompt, model_name, max_tokens, temperature=0, stop=None, logprobs=True, frequency_penalty=0, top_p=None, top_k=None, quantize=True, quantization_bits=4):
