@@ -30,9 +30,9 @@ from resources.assess_objectType import actionable_properties
 from resources.assess_objectType import context_interactions
 agents = agents_properties.agents
 
-max_tokens = 2048
-decomp_freq_penalty = 0.05
-decomp_code_freq_penalty = 0.05
+max_tokens = 1024
+decomp_freq_penalty = 0.0
+decomp_code_freq_penalty = 0.0
 bf_models = []
 
 def LM(prompt, model_name, max_tokens, temperature=0, stop=None, logprobs=True, frequency_penalty=0, top_p=None, top_k=None, quantize=True, quantization_bits=4):
@@ -547,16 +547,18 @@ if __name__ == "__main__":
     prompt += f"\nall_objects_available = "
     prompt += f"{all_objects}"
     prompt += '''
-    \nIMPORTANT: Some objects are created from a source object after certain actions. 
-    For example, a Potato becomes PotatoSliced after the Slice action. 
+    IMPORTANT: Some objects are created from a source object after certain actions.
+    For example, a Potato becomes PotatoSliced after the Slice action.
     Object Types marked with (*) only appear after an interaction—for instance, an Apple becomes AppleSliced after slicing.
     Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
-    However, toasting does not create a new object type. 
+    However, toasting does not create a new object type.
     For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
+    Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
+    Therefore, you do not need to call PickUpObject or GoToObject separately before using PutObject or DropObject.
     '''
 
     print (f"\n\n*******************************************************************************************************************************")
-    print ("Generating Decompsed Plans...")
+    print ("Generating Decomposed Plans...")
     # print (f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
@@ -622,17 +624,19 @@ if __name__ == "__main__":
     prompt += f"\nall_objects_available = "
     prompt += f"{all_objects}"
     prompt += '''
-    \nIMPORTANT: Some objects are created from a source object after certain actions. 
-    For example, a Potato becomes PotatoSliced after the Slice action. 
+    IMPORTANT: Some objects are created from a source object after certain actions.
+    For example, a Potato becomes PotatoSliced after the Slice action.
     Object Types marked with (*) only appear after an interaction—for instance, an Apple becomes AppleSliced after slicing.
     Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
-    However, toasting does not create a new object type. 
+    However, toasting does not create a new object type.
     For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
+    Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
+    Therefore, you do not need to call PickUpObject or GoToObject separately before using PutObject or DropObject.
     '''
-    prompt+= f"\nIMPORTANT: Do NOT include action \"CleanObject <objectId><toolObjectId><canBeUsedUpDetergentId>\" in the plan if you cannot find any cleaning tool <toolObjectId> in this scene. However, <canBeUsedUpDetergentId> is not necessary for cleaning action, use it if you can find a Detergent in the scene with the states 'canBeUsedUp'=True and 'UsedUp'=False, otherwise, <toolObjectId> would be enough."
+    prompt+= f"\nIMPORTANT: Always use the CleanObject function when performing a cleaning action. The parameter <toolObjectId> must be provided and should correspond to a cleaning tool available in the scene. The parameter <canBeUsedUpDetergentId> is optional—include it only if there is a Detergent in the scene with 'canBeUsedUp'=True and 'UsedUp'=False. If no such Detergent exists, then <toolObjectId> alone is sufficient."
 
     print (f"\n\n*******************************************************************************************************************************")
-    print ("Generating Decompsed Plans CODE...")
+    print ("Generating Decomposed Plans CODE...")
     # print (f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
