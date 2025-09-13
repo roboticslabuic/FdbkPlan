@@ -12,7 +12,7 @@ IMPORTANT: The output format must exactly match the previous assistance response
 
 Also, here are some special object interactions you need to consider:
 - You don't need to fill water or coffee to the coffee machine to brew coffee.
-- You should slice the food if possible before putting into other objects.
+- Slice the food if possible before putting into other objects.
 
 [USER]
 You are in a floorplan containing the following objects and locations:

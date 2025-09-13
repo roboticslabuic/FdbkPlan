@@ -9,7 +9,7 @@ IMPORTANT:
 - Some objects are created from a source object after certain actions (e.g., a Potato becomes PotatoSliced after the Slice action). These are marked with (*).
 - For newly created objects (like BreadSliced*), you will not have an objectId. In these cases, use the object's type name (e.g., 'BreadSliced') as a placeholder for the objectId.
 - The PutObject and DropObject functions already include PickUpObject and GoToObject.
-- NEVER include in the plan any step about picking up, getting, or going to objects. 
+- NEVER include in the plan any step about picking up, getting, or going to objects.
 - Always use the CleanObject function when performing a cleaning action.
 
 [USER]

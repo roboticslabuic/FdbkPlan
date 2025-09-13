@@ -8,9 +8,10 @@ IMPORTANT:
 - Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
 - However, toasting does not create a new object type.
 - For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
+- ThrowObject throws the object randomly, you can't define the target object.
 - The PutObject and DropObject functions already include PickUpObject and GoToObject.
-- NEVER include in the plan any step about picking up, getting, or going to objects. 
-- Always use the CleanObject function when performing a cleaning action.
+- NEVER include in the plan any step about picking up, getting, or going to objects.
+- Always use the CleanObject function for any cleaning action. The function automatically picks up the cleaning tool, so the plan must not include any step about picking up the tool separately.
 
 [USER]
 Task Description: Make a meal with egg, tomato, and bread.
