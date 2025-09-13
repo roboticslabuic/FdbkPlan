@@ -291,9 +291,9 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
     single_agent_plan = preprocess_code(text)
     return single_agent_plan
 
-def recursive_task_execution(prompt, messages, single_agent_plan, model_name, decomposed_plan_code):
-    print(f"\n\n*******************************************************************************************************************************")
-    print("Testing Task Excection...")
+def recursive_task_execution(prompt, messages, single_agent_plan, model_name, decomp_freq_penalty, decomposed_plan_code):
+    print (f"\n\n*******************************************************************************************************************************")
+    print ("Testing Task Excection...")
     executable_plan = ""
     # append the imports to the file
     start_file = Path("./resources/start_exe_test.py").read_text()
@@ -468,12 +468,16 @@ if __name__ == "__main__":
     prompt += f"\n{all_objects}"
     prompt += f"\nThe instruction: " + test_task
 
-    print(f"\n\n******************************************************************************************************************************")
-    print("Extracting Task Description and Objects Involved...")
-    print(prompt)
+    print (f"\n\n******************************************************************************************************************************")
+    print ("Extracting Task Description and Objects Involved...")
+    # print (f"\n############################################# Provided Prompt #############################################################")
+    # print (prompt)
 
-    messages.append({"role": "user", "content": prompt}) 
-    _, text = LM.generate(messages, max_tokens)
+    messages = [{"role": "system", "content": prompt.split('\n\n')[0]},
+                {"role": "user", "content": prompt.split('\n\n')[1]},
+                {"role": "assistant", "content": prompt.split('\n\n')[2]},
+                {"role": "user", "content": prompt.split('\n\n')[3]}]
+    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits)
 
     extracted_task_objs = text
 
