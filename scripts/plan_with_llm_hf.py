@@ -1,4 +1,3 @@
-import glob
 import os
 import re
 import argparse
@@ -8,6 +7,7 @@ import subprocess
 import ast
 import subprocess
 import shutil
+import json
 
 # Set transformers verbosity to reduce warnings
 os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
@@ -218,6 +218,45 @@ def create_location_map(states_list):
             location_map[container_name].append(object_type)
             
     return location_map
+
+def format_location_map(data):
+    """
+    Formats a dictionary to have each key on a new line,
+    while keeping the list value on a single line.
+
+    Args:
+        data (dict): The dictionary to format.
+
+    Returns:
+        str: A nicely formatted string representation.
+    """
+    # Start with the opening brace
+    lines = ["{"]
+
+    # Get the list of keys to know when we're on the last one
+    keys = list(data.keys())
+    
+    # Format each key-value pair
+    for i, key in enumerate(keys):
+        value = data[key]
+        
+        # Convert the list of items to a single-line JSON string
+        value_str = json.dumps(value)
+        
+        # Build the line with 4-space indentation
+        line = f'    "{key}": {value_str}'
+        
+        # Add a comma if it's not the last item
+        if i < len(keys) - 1:
+            line += ","
+            
+        lines.append(line)
+
+    # Add the closing brace
+    lines.append("}")
+    
+    # Join all lines with a newline character
+    return "\n".join(lines)
 
 def set_model_config(model_name):
     """
@@ -506,7 +545,7 @@ if __name__ == "__main__":
 
     print(f"\n\n******************************************************************************************************************************")
     print("Extracting Task Description and Objects Involved...")
-    print(obj_location_map)
+    print(format_location_map(obj_location_map))
 
     messages.append({"role": "user", "content": prompt}) 
     _, text = LM.generate(messages, max_tokens)
