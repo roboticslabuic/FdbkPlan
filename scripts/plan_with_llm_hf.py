@@ -562,12 +562,10 @@ if __name__ == "__main__":
     properties = get_objs_props(extracted_objs_list)
     states = get_objs_state(extracted_objs_list, args.floor_plan)
     context = get_objs_context(extracted_objs_list)
-    decompose_prompt_file = open(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_decompse_set}" + ".txt", "r")
-    prompt = decompose_prompt_file.read()
-    decompose_prompt_file.close()
+    messages = parse_prompt_file(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_decompse_set}" + ".txt")
     # prompt += f"\nYou are in a floorplan containing the following objects and locations:"
     # prompt += f"\n{all_objects}\n"
-    prompt += "\n\n" + extracted_task_objs
+    prompt += extracted_task_objs
     prompt += f"\nproperties = "
     prompt += f"{properties}"
     prompt += f"\nstates = "
@@ -576,26 +574,13 @@ if __name__ == "__main__":
     prompt += f"{context}"
     prompt += f"\nall_objects_available = "
     prompt += f"{all_objects}"
-    prompt += '''
-    IMPORTANT: Some objects are created from a source object after certain actions.
-    For example, a Potato becomes PotatoSliced after the Slice action.
-    Object Types marked with (*) only appear after an interaction—for instance, an Apple becomes AppleSliced after slicing.
-    Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
-    However, toasting does not create a new object type.
-    For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
-    Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
-    Therefore, DO NOT pick up, get, or go to the object.
-    '''
 
     print(f"\n\n*******************************************************************************************************************************")
     print("Generating Decomposed Plans...")
     # print(f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
-    messages = [{"role": "system", "content": prompt.split('\n\n')[0]},
-                {"role": "user", "content": prompt.split('\n\n')[1]},
-                {"role": "assistant", "content": prompt.split('\n\n')[2]},
-                {"role": "user", "content": prompt.split('\n\n')[3]}]
+    messages.append({"role": "user", "content": prompt})
     _, text = LM.generate(messages, max_tokens)
 
     # decomposed_plan = text

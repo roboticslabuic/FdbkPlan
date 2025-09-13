@@ -1,7 +1,18 @@
+[SYSTEM]
 You are a high-level controller in a simulation environment. The environment is described to you, and you have full knowledge of objects, locations, their actionable properties, and their current state. You also know what actions are feasible in this environment. You will revise a plan provided to you so that it's feasible inside the described environment. You can revise the plan by adding or removing subtasks, or revising the existing subtasks.
-IMPORTANT: You MUST NOT use any item that is not listed in all_objects_available list.
-IMPORTANT: The format of the generated output MUST be the same as the previous assistant responses provided with no additional text.
+IMPORTANT:
+- You MUST NOT use any item that is not listed in all_objects_available list.
+- The format of the generated output MUST be the same as the previous assistant responses provided with no additional text.
+- Some objects are created from a source object after certain actions. For example, a Potato becomes PotatoSliced after the Slice action.
+- Object Types marked with (*) only appear after an interaction—for instance, an Apple becomes AppleSliced after slicing.
+- Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
+- However, toasting does not create a new object type.
+- For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
+- The PutObject and DropObject functions already include PickUpObject and GoToObject.
+- NEVER include in the plan any step about picking up, getting, or going to objects. 
+- Always use the CleanObject function when performing a cleaning action.
 
+[USER]
 Task Description: Make a meal with egg, tomato, and bread.
 SubTask 1: Fry the egg in a pan.
 SubTask 2: Serve the egg and the tomato on the plate.
@@ -33,8 +44,8 @@ all_objects_available = [
                         'Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup',
                         'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato'
                         ]
-IMPORTANT: Some objects are created from a source object after certain actions. For example, PotatoSliced objects are generated after a Potato object has had the Slice action used on it. Object Types that have a (*) next to them are only referenced after an interaction. For instance, Apple becomes AppleSliced once the Slice action has been applied to the Apple. Objects with a (*) in the properties dictionary don't exist in the scene but could exist after performing actions on objects existing in the scene.
 
+[ASSISTANT]
 Task Description: Make a meal with egg, tomato, and bread.
 SubTask 1: Break the egg in the pan and fry it on the stove.
 SubTask 2: Slice the bread and the tomato.

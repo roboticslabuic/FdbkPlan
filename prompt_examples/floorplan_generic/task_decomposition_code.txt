@@ -7,10 +7,10 @@ IMPORTANT:
 - Do NOT use for or while loops for repetitive actions.
 - Make sure the generated code doesn't have any syntax errors and is ready to be processed by the ast library.
 - Some objects are created from a source object after certain actions (e.g., a Potato becomes PotatoSliced after the Slice action). These are marked with (*).
-- **For newly created objects (like BreadSliced*), you will not have an objectId. In these cases, use the object's type name (e.g., 'BreadSliced') as a placeholder for the objectId.**
+- For newly created objects (like BreadSliced*), you will not have an objectId. In these cases, use the object's type name (e.g., 'BreadSliced') as a placeholder for the objectId.
 - The PutObject and DropObject functions already include PickUpObject and GoToObject.
-- DO NOT explicitly pick up, get, or go to the object. 
-- ALWAYS use the CleanObject function when performing a cleaning action.
+- NEVER include in the plan any step about picking up, getting, or going to objects. 
+- Always use the CleanObject function when performing a cleaning action.
 
 [USER]
 Task Description: Make a meal with egg, tomato, and bread.
