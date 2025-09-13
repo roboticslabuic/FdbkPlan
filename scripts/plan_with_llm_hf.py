@@ -14,7 +14,13 @@ os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
 from glob import glob
 
 # Replace OpenAI with Hugging Face
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    BitsAndBytesConfig,
+    StoppingCriteria,
+    StoppingCriteriaList,
+)
 import torch
 import ai2thor.controller
 from ai2thor.platform import CloudRendering
@@ -30,195 +36,153 @@ from resources.assess_objectType import actionable_properties
 from resources.assess_objectType import context_interactions
 agents = agents_properties.agents
 
-max_tokens = 1024
+max_tokens = 2048
 decomp_freq_penalty = 0.0
-decomp_code_freq_penalty = 0.0
 bf_models = []
 
-def LM(prompt, model_name, max_tokens, temperature=0, stop=None, logprobs=True, frequency_penalty=0, top_p=None, top_k=None, quantize=True, quantization_bits=4):
+class StopOnTokens(StoppingCriteria):
+    def __init__(self, stop_token_ids):
+        self.stop_token_ids = stop_token_ids
+
+    def __call__(self, input_ids, scores, **kwargs):
+        # Check if the generated tokens end with any of the stop sequences
+        for stop_ids in self.stop_token_ids:
+            if len(input_ids[0]) >= len(stop_ids) and torch.all(
+                input_ids[0][-len(stop_ids) :] == stop_ids
+            ):
+                return True
+        return False
+
+# This helper class mimics the OpenAI response structure
+class MockResponse:
+    def __init__(self, text):
+        self.choices = [type('obj', (), {'message': {'content': text}})]
+
+class LLM_Generator:
     """
-    Hugging Face model inference function with quantization support
-    
-    Parameters:
-    - frequency_penalty: Mapped to repetition_penalty in HuggingFace (positive values penalize repetition)
-    - logprobs: When True, enables output_scores=True and return_dict_in_generate=True
-    - temperature, top_p, top_k: Standard sampling parameters
-    - stop: Post-processed after generation (HF pipeline doesn't support stop sequences directly)
+    A class to encapsulate a Hugging Face model and tokenizer for text generation.
+    The model is loaded once upon initialization.
     """
-    # Initialize model and tokenizer if not already done
-    if not hasattr(LM, 'model'):
-        print(f"Loading Hugging Face model: {model_name}")
+    def __init__(self, model_name, quantize=True, quantization_bits=4):
+        """
+        Initializes the generator by loading the model and tokenizer.
+
+        Args:
+            model_name (str): The name of the Hugging Face model to load.
+            quantize (bool): Whether to apply quantization.
+            quantization_bits (int): The number of bits for quantization (4 or 8).
+        """
+        self.model = None
+        self.tokenizer = None
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
         try:
-            # Configure quantization if enabled
+            print(f"Loading Hugging Face model: {model_name} on device: {self.device}")
             quantization_config = None
             if quantize:
-                try:
-                    print(f"Using {quantization_bits}-bit quantization")
-                    quantization_config = BitsAndBytesConfig(
-                        load_in_4bit=(quantization_bits == 4),
-                        load_in_8bit=(quantization_bits == 8),
-                        bnb_4bit_compute_dtype=torch.bfloat16,
-                        bnb_4bit_use_double_quant=True,
-                        bnb_4bit_quant_type="nf4"
-                    )
-                except Exception as quant_error:
-                    print(f"Warning: Could not configure quantization: {quant_error}")
-                    print("Falling back to full precision mode")
-                    quantization_config = None
-                    quantize = False
+                if quantization_bits == 4:
+                    quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16)
+                elif quantization_bits == 8:
+                    quantization_config = BitsAndBytesConfig(load_in_8bit=True)
 
-            LM.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            # Handle missing pad_token for some models
-            if LM.tokenizer.pad_token is None:
-                LM.tokenizer.pad_token = LM.tokenizer.eos_token
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
 
-            # Check if CUDA is available
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"Using device: {device}")
-            LM.model = AutoModelForCausalLM.from_pretrained(
+            self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                quantization_config=quantization_config if quantize else None,
-                dtype="auto",
-                device_map="auto",
+                quantization_config=quantization_config,
+                device_map=self.device,
                 trust_remote_code=True,
-            )
-
-            if device == "cpu":
-                LM.model = LM.model.to(device)
-
-            LM.pipe = pipeline(
-                "text-generation",
-                model=LM.model,
-                tokenizer=LM.tokenizer,
-                dtype="auto",
+                torch_dtype=torch.bfloat16,
             )
             print("Model loaded successfully!")
         except Exception as e:
             print(f"Error loading model: {e}")
+            traceback.print_exc()
+
+    def generate(self, prompt_messages, max_tokens, temperature=1.0, top_p=0.95, top_k=64):
+        """
+        Generates text based on a list of prompt messages.
+
+        Args:
+            prompt_messages (list): A list of dictionaries in chat format (e.g., [{'role': 'user', 'content': '...'}]).
+            max_tokens (int): The maximum number of new tokens to generate.
+            temperature (float): The sampling temperature.
+            top_k (int): The number of top-k candidates for sampling.
+
+        Returns:
+            A tuple containing (MockResponse, generated_text_string).
+            Returns (None, "") on error.
+        """
+        if not self.model or not self.tokenizer:
+            print("Model not loaded. Cannot generate text.")
             return None, ""
+            
+        try:
+            # Apply the model's chat template to the message history
+            full_prompt = self.tokenizer.apply_chat_template(
+                prompt_messages,
+                tokenize=False,
+                add_generation_prompt=True
+            )
 
-    # Convert messages format to string if needed
-    if isinstance(prompt, list):
-        # Handle OpenAI-style messages
-        full_prompt = ""
-        for message in prompt:
-            role = message.get("role", "")
-            content = message.get("content", "")
-            if role == "system":
-                full_prompt += f"System: {content}\n"
-            elif role == "user":
-                full_prompt += f"User: {content}\n"
-            elif role == "assistant":
-                full_prompt += f"Assistant: {content}\n"
-        full_prompt += "Assistant: "
-    else:
-        full_prompt = prompt
+            inputs = self.tokenizer(full_prompt, return_tensors="pt").to(self.device)
+            input_ids_len = inputs.input_ids.shape[1]
 
-    # Generate response
-    try:
-        # Prepare generation parameters that are supported by transformers
-        generation_kwargs = {
-            "max_new_tokens": max_tokens,
-            "pad_token_id": LM.tokenizer.eos_token_id,
-            "return_full_text": False
-        }
-        
-        # Enable sampling if any sampling parameters are provided
-        should_sample = temperature > 0 or (top_p is not None and top_p < 1.0) or (top_k is not None and top_k > 0)
-        generation_kwargs["do_sample"] = should_sample
-        
-        # Only add sampling parameters if sampling is enabled
-        if should_sample:
-            if temperature > 0:
-                generation_kwargs["temperature"] = temperature
-            else:
-                generation_kwargs["temperature"] = 0.01  # Small non-zero value for sampling
-                
-            if top_p is not None and top_p > 0:
-                generation_kwargs["top_p"] = top_p
-                
-            if top_k is not None and top_k > 0:
-                generation_kwargs["top_k"] = top_k
-        
-        # Map frequency_penalty to repetition_penalty in HuggingFace
-        if frequency_penalty != 0:
-            # Convert frequency_penalty to repetition_penalty
-            # frequency_penalty is typically negative, repetition_penalty is > 1.0 for penalizing repetition
-            if frequency_penalty > 0:
-                generation_kwargs["repetition_penalty"] = 1.0 + frequency_penalty
-            else:
-                # For negative frequency_penalty, we encourage repetition (< 1.0)
-                generation_kwargs["repetition_penalty"] = max(0.1, 1.0 + frequency_penalty)
-        
-        # Handle logprobs - Note: pipeline doesn't directly support output_scores
-        # We'll need to use the model directly for logprobs functionality
-        use_raw_model = logprobs
-        
-        if use_raw_model:
-            # When logprobs are requested, use model.generate() directly instead of pipeline
-            generation_kwargs["output_scores"] = True
-            generation_kwargs["return_dict_in_generate"] = True
-        
-        # Filter out any unsupported parameters before passing to pipeline
-        if use_raw_model:
-            # Parameters for model.generate()
-            supported_params = {
-                'max_new_tokens', 'temperature', 'top_p', 'top_k', 'do_sample', 
-                'pad_token_id', 'num_return_sequences', 'repetition_penalty', 
-                'length_penalty', 'early_stopping', 'output_scores', 'return_dict_in_generate'
+            # Define the specific stop token for the model
+            stop_word = "<end_of_turn>"
+            stop_token_ids = self.tokenizer.encode(stop_word, add_special_tokens=False, return_tensors='pt').squeeze(0).to(self.device)
+            stopping_criteria = StoppingCriteriaList([StopOnTokens([stop_token_ids])])
+            
+            generation_kwargs = {
+                "max_new_tokens": max_tokens,
+                "do_sample": True,
+                "temperature": temperature,
+                "top_p": top_p,
+                "top_k": top_k,
+                "pad_token_id": self.tokenizer.eos_token_id,
             }
-        else:
-            # Parameters for pipeline
-            supported_params = {
-                'max_new_tokens', 'temperature', 'top_p', 'top_k', 'do_sample', 
-                'pad_token_id', 'return_full_text', 'num_return_sequences',
-                'repetition_penalty', 'length_penalty', 'early_stopping'
-            }
-        
-        filtered_kwargs = {k: v for k, v in generation_kwargs.items() if k in supported_params}
-        
-        if use_raw_model:
-            # Use model.generate() directly for logprobs support
-            inputs = LM.tokenizer(full_prompt, return_tensors="pt").to(LM.model.device)
+
             with torch.no_grad():
-                outputs = LM.model.generate(
-                    inputs.input_ids,
-                    attention_mask=inputs.attention_mask,
-                    **filtered_kwargs
+                outputs = self.model.generate(
+                    **inputs,
+                    **generation_kwargs,
+                    stopping_criteria=stopping_criteria,
                 )
             
-            # Handle different output formats based on return_dict_in_generate
-            if hasattr(outputs, 'sequences'):
-                # When return_dict_in_generate=True, outputs is a GenerateOutput object
-                generated_tokens = outputs.sequences[0][len(inputs.input_ids[0]):]
-            else:
-                # When return_dict_in_generate=False, outputs is just the token sequences
-                generated_tokens = outputs[0][len(inputs.input_ids[0]):]
-            
-            generated_text = LM.tokenizer.decode(generated_tokens, skip_special_tokens=True)
-        else:
-            # Use pipeline for regular generation
-            outputs = LM.pipe(full_prompt, **filtered_kwargs)
-            generated_text = outputs[0]['generated_text']
+            generated_tokens = outputs[0][input_ids_len:]
+            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
+
+            return MockResponse(generated_text), generated_text
+
+        except Exception as e:
+            print(f"Error generating response: {e}")
+            traceback.print_exc()
+            return None, ""
+
+def parse_prompt_file(filepath):
+    """
+    Reads a specially formatted text file and converts it into a list of message dictionaries.
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    messages = []
+    # Split the content by the role markers, keeping the markers
+    parts = re.split(r'(\[(?:SYSTEM|USER|ASSISTANT)\])', content)
+    
+    # The first part is usually empty, so we start from index 1
+    for i in range(1, len(parts), 2):
+        role_tag = parts[i]
+        text_content = parts[i+1].strip()
         
-        # Post-process to handle stop sequences if provided
-        if stop and generated_text:
-            stop_list = stop if isinstance(stop, list) else [stop]
-            for stop_word in stop_list:
-                if stop_word in generated_text:
-                    generated_text = generated_text.split(stop_word)[0]
-                    break
-
-        # Create a mock response object similar to OpenAI's format
-        class MockResponse:
-            def __init__(self, text):
-                self.choices = [type('obj', (object,), {'message': type('obj', (object,), {'content': text})()})()]
-
-        return MockResponse(generated_text), generated_text
-
-    except Exception as e:
-        print(f"Error generating response: {e}")
-        return None, ""
+        # Clean up the role name (e.g., '[SYSTEM]' -> 'system')
+        role = role_tag.strip('[]').lower()
+        
+        messages.append({'role': role, 'content': text_content})
+        
+    return messages
 
 def set_model_config(model_name):
     """
@@ -297,17 +261,13 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
     print (f"\n\n*******************************************************************************************************************************")
     print ("Preparing Code for Single Agent...")
 
-    single_agent_prompt_file = open(f"./prompt_examples/floorplan_generic/task_single_agent" + ".txt", "r")
-    single_agent_prompt = single_agent_prompt_file.read()
-    single_agent_prompt_file .close()
+    single_agent_prompt_file = "./prompt_examples/floorplan_generic/task_single_agent.txt"
     prompt_code = preprocess_code(decomposed_plan_code)
 
     # For Hugging Face models, use the message format converted to string
-    messages_single_agent = [
-        {"role": "system", "content": single_agent_prompt},
-        {"role": "user", "content": prompt_code}
-    ]
-    _, text = LM(messages_single_agent, model_name, max_tokens, frequency_penalty=0.0, quantize=args.quantize, quantization_bits=args.quantization_bits)
+    messages_single_agent = parse_prompt_file(single_agent_prompt_file)
+    messages_single_agent.append({"role": "user", "content": prompt_code})
+    _, text = LM.generate(messages_single_agent, max_tokens)
 
     print (f"\n############################################# LLM Response For Single Agent Code #############################################################")
     print(text)
@@ -319,8 +279,8 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
         prompt_code += f"\nAdditional user instructions: {additional_instructions}"
 
         messages_single_agent.append({"role": "assistant", "content": text})
-        messages_single_agent.append({"role": "user", "content": additional_instructions})
-        _, text = LM(messages_single_agent, model_name, max_tokens, frequency_penalty=0.0, quantize=args.quantize, quantization_bits=args.quantization_bits)
+        messages_single_agent.append({"role": "user", "content": prompt_code})
+        _, text = LM.generate(messages_single_agent, max_tokens)
 
         print(f"\n############################################# Updated LLM Response for Single Agent Code #############################################################")
         print(text)
@@ -331,7 +291,7 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
     single_agent_plan = preprocess_code(text)
     return single_agent_plan
 
-def recursive_task_execution(prompt, messages, single_agent_plan, model_name, decomp_freq_penalty, decomposed_plan_code):
+def recursive_task_execution(prompt, messages, single_agent_plan, model_name, decomposed_plan_code):
     print (f"\n\n*******************************************************************************************************************************")
     print ("Testing Task Excection...")
     executable_plan = ""
@@ -385,7 +345,7 @@ def recursive_task_execution(prompt, messages, single_agent_plan, model_name, de
 
             messages.append({"role": "assistant", "content": decomposed_plan_code})
             messages.append({"role": "user", "content": additional_instructions})
-            _, text = LM(messages, model_name, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits) #1600 for gpt4o
+            _, text = LM.generate(messages, max_tokens)
 
             print(f"\n############################################# Updated LLM Response for Decomposed Plan Code#############################################################")
             print(text)
@@ -399,7 +359,7 @@ def recursive_task_execution(prompt, messages, single_agent_plan, model_name, de
 
                 messages.append({"role": "assistant", "content": text})
                 messages.append({"role": "user", "content": additional_instructions})
-                _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits) #1600 for gpt4o
+                _, text = LM.generate(messages, max_tokens)
 
                 print(f"\n############################################# Updated LLM Response for Decomposed Plan #############################################################")
                 print(text)
@@ -412,8 +372,7 @@ def recursive_task_execution(prompt, messages, single_agent_plan, model_name, de
             ######################### Single Agent Code Prep #################################
             single_agent_plan = single_agent_code_prep(decomposed_plan_code, args.hf_model)
             decomposed_plan_code = recursive_task_execution(
-                prompt, messages, single_agent_plan, model_name, 
-                decomp_freq_penalty, decomposed_plan_code
+                prompt, messages, single_agent_plan, model_name, decomposed_plan_code
             )
         return decomposed_plan_code
     
@@ -497,28 +456,23 @@ if __name__ == "__main__":
     sys.stdin = InputLogger(terminal_log_file)
     # sys.stdin = open(f"./logs/{gpt_folder}/{folder_name}/terminal_log.txt", "a")
 
+    LM = LLM_Generator(args.hf_model, quantize=args.quantize, quantization_bits=args.quantization_bits)
 
     # change floorplan type to generic to use generic prompts.
     floor_plan_type = f"generic"
     ############################################ Extracting Objects and Locations #########################################################
     all_objects = get_ai2thor_objects(args.floor_plan)
-    obj_extract_prompt_file = open(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_task_desc_obj_extraction}" + ".txt", "r")
-    prompt = obj_extract_prompt_file.read()
-    obj_extract_prompt_file.close()
-    prompt += f"\n\nYou are in a different floorplan than previous, containing the following objects and locations:"
+    obj_extract_prompt_file = f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_task_desc_obj_extraction}" + ".txt"
+    messages = parse_prompt_file(obj_extract_prompt_file)
+    prompt = f"You are in a new floorplan, different from any previous ones. Please create a SINGLE plan using only the following objects and locations:"
     prompt += f"\n{all_objects}"
     prompt += f"\nThe instruction: " + test_task
 
     print (f"\n\n******************************************************************************************************************************")
     print ("Extracting Task Description and Objects Involved...")
-    # print (f"\n############################################# Provided Prompt #############################################################")
-    # print (prompt)
 
-    messages = [{"role": "system", "content": prompt.split('\n\n')[0]},
-                {"role": "user", "content": prompt.split('\n\n')[1]},
-                {"role": "assistant", "content": prompt.split('\n\n')[2]},
-                {"role": "user", "content": prompt.split('\n\n')[3]}]
-    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits)
+    messages.append({"role": "user", "content": prompt}) 
+    _, text = LM.generate(messages, max_tokens)
 
     extracted_task_objs = text
 
@@ -554,7 +508,7 @@ if __name__ == "__main__":
     However, toasting does not create a new object type.
     For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
     Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
-    Therefore, you do not need to call PickUpObject or GoToObject separately before using PutObject or DropObject.
+    Therefore, DO NOT pick up, get, or go to the object.
     '''
 
     print (f"\n\n*******************************************************************************************************************************")
@@ -566,7 +520,7 @@ if __name__ == "__main__":
                 {"role": "user", "content": prompt.split('\n\n')[1]},
                 {"role": "assistant", "content": prompt.split('\n\n')[2]},
                 {"role": "user", "content": prompt.split('\n\n')[3]}]
-    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits) #1600 for gpt4o
+    _, text = LM.generate(messages, max_tokens)
 
     # decomposed_plan = text
     print (f"\n############################################# LLM Response #############################################################")
@@ -580,7 +534,7 @@ if __name__ == "__main__":
 
         messages.append({"role": "assistant", "content": text})
         messages.append({"role": "user", "content": additional_instructions})
-        _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits) #1600 for gpt4o
+        _, text = LM.generate(messages, max_tokens)
 
         print(f"\n############################################# Updated LLM Response #############################################################")
         print(text)
@@ -631,7 +585,7 @@ if __name__ == "__main__":
     However, toasting does not create a new object type.
     For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
     Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
-    Therefore, you do not need to call PickUpObject or GoToObject separately before using PutObject or DropObject.
+    Therefore, DO NOT pick up, get, or go to the object.
     '''
     prompt+= f"\nIMPORTANT: Always use the CleanObject function when performing a cleaning action. The parameter <toolObjectId> must be provided and should correspond to a cleaning tool available in the scene. The parameter <canBeUsedUpDetergentId> is optional—include it only if there is a Detergent in the scene with 'canBeUsedUp'=True and 'UsedUp'=False. If no such Detergent exists, then <toolObjectId> alone is sufficient."
 
@@ -648,7 +602,7 @@ if __name__ == "__main__":
             messages.append({"role": "assistant", "content": split_prompt})
         else:
             messages.append({"role": "user", "content": split_prompt})
-    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_code_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits)   
+    _, text = LM.generate(messages, max_tokens)   
 
     # decomposed_plan_code = text
     print (f"\n############################################# LLM Response for Decomposed Plan #############################################################")
@@ -662,7 +616,7 @@ if __name__ == "__main__":
 
         messages.append({"role": "assistant", "content": text})
         messages.append({"role": "user", "content": additional_instructions})
-        _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits) #1600 for gpt4o
+        _, text = LM.generate(messages, max_tokens)
 
         print(f"\n############################################# Updated LLM Response for Decomposed Plan #############################################################")
         print(text)
@@ -676,8 +630,7 @@ if __name__ == "__main__":
     single_agent_plan = single_agent_code_prep(decomposed_plan_code, args.hf_model)
 
     ################################################# Task Execution Test #################################################################
-    decomposed_plan_code = recursive_task_execution(prompt, messages, single_agent_plan, args.hf_model, decomp_freq_penalty,
-                                                    decomposed_plan_code)
+    decomposed_plan_code = recursive_task_execution(prompt, messages, single_agent_plan, args.hf_model, decomposed_plan_code)
 
     # user confirms the plan is correct
     print("Proceeding with the following Decomposed Plan Code...")
@@ -709,7 +662,7 @@ if __name__ == "__main__":
     # print (prompt)         
     messages = [{"role": "system", "content": allocate_prompt},
                 {"role": "user", "content": prompt}]
-    _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.02, quantize=args.quantize, quantization_bits=args.quantization_bits) #0.30 #1800 for gpt4o
+    _, text = LM.generate(messages, max_tokens) #0.30 #1800 for gpt4o
 
     print (f"\n############################################# LLM Response #############################################################")
     print(text)
@@ -722,7 +675,7 @@ if __name__ == "__main__":
 
         messages.append({"role": "assistant", "content": text})
         messages.append({"role": "user", "content": additional_instructions})
-        _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=0.02, quantize=args.quantize, quantization_bits=args.quantization_bits)
+        _, text = LM.generate(messages, max_tokens)
 
         print(f"\n############################################# Updated LLM Response #############################################################")
         print(text)
@@ -770,8 +723,6 @@ if __name__ == "__main__":
         with open(f"./logs/{gpt_folder}/{folder_name}/log.txt", 'w') as f:
             f.write(test_task)
             f.write(f"\n\nModel: {args.hf_model}")
-            f.write(f"\n\nDecomposition Frequency Penalty: {decomp_freq_penalty}")
-            f.write(f"\n\nDecomposition Code Frequency Penalty: {decomp_code_freq_penalty}")
             f.write(f"\n\nFloor Plan: {args.floor_plan}")
         
         with open(f"./logs/{gpt_folder}/{folder_name}/extracted_task_desc_objs.txt", 'w') as d:
