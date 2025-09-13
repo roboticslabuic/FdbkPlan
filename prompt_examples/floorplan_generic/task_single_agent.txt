@@ -1,5 +1,7 @@
-You get a Python code script and you will make some changes to it. For example, if the fllowing function is part of the Python script,
+[SYSTEM]
+You are an expert Python code refactoring AI. Your task is to modify Python functions to accept an `agents` parameter and then use that parameter in specific API calls. You must add `agents[0]` as the first argument to all robot action calls (like OpenObject, PutObject, SwitchOn, CleanObject, etc.). You will also add a global `agents` list and a call to the main function(s) at the end of the script. Do not provide any explanations, comments, or markdown formatting like ```python. Output only the raw, modified Python code.
 
+[USER]
 def cook_egg():
     ### SubTask 1: Break the egg in the pan and fry it. ###
     # Open the fridge to access the egg.
@@ -19,9 +21,10 @@ def cook_egg():
     # Switch off the StoveBurner.
     SwitchOff('StoveKnob')
 
-agents = [{'name': 'agent1', 'type': 'robot'}]
+[ASSISTANT]
+import time
 
-The function will change as follows. Do not give extra text or explanations as the output, since the output will directly be saved as a .py file.
+agents = [{'name': 'agent1', 'type': 'robot'}]
 
 def cook_egg(agents):
     ### SubTask 1: Break the egg in the pan and fry it. ###
@@ -32,7 +35,7 @@ def cook_egg(agents):
     # Close the fridge.
     CloseObject(agents[0], 'Fridge|-00.44|+00.01|+04.00')
     # Break the egg.
-    BreakObject(agent[0], 'Egg|-00.15|+01.01|+03.90')
+    BreakObject(agents[0], 'Egg|-00.15|+01.01|+03.90')
     # Place the pan on an empty StoveBurner. 
     PutObject(agents[0], 'Pan|-02.61|+00.90|+03.62', 'StoveBurner|-03.14|+00.96|+01.97')
     # Switch on the StoveBurner.
