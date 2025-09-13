@@ -183,6 +183,42 @@ def parse_prompt_file(filepath):
         
     return messages
 
+def create_location_map(states_list):
+    """
+    Converts a detailed states list into a simple map of containers and their contents.
+
+    Args:
+        states_list (list): The list of object state dictionaries.
+
+    Returns:
+        dict: A dictionary where keys are container names and values are lists
+              of the object types they contain.
+    """
+    # Initialize an empty dictionary to store our map.
+    location_map = {}
+
+    # Loop through every object in the provided states list.
+    for obj in states_list:
+        # Check if the object has a 'parentReceptacles' key and that it's not empty.
+        if 'parentReceptacles' in obj and obj['parentReceptacles']:
+            # Get the full ID of the container (e.g., 'Fridge|-00.44|...').
+            # We assume the object is in the first listed receptacle.
+            container_id = obj['parentReceptacles'][0]
+
+            # Extract the clean container name by splitting the ID string.
+            container_name = container_id.split('|')[0]
+            
+            # Extract the clean object type from its own ID string.
+            object_type = obj['objectId'].split('|')[0]
+
+            # If the container isn't a key in our map yet, add it with an empty list.
+            location_map.setdefault(container_name, [])
+
+            # Append the object's type to the list for its container.
+            location_map[container_name].append(object_type)
+            
+    return location_map
+
 def set_model_config(model_name):
     """
     Set Hugging Face model configuration
@@ -265,7 +301,7 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
 
     # For Hugging Face models, use the message format converted to string
     messages_single_agent = parse_prompt_file(single_agent_prompt_file)
-    messages_single_agent.append({"role": "user", "content": "\n\nNow, apply the modifications to the following new script:\n\n" + prompt_code})
+    messages_single_agent.append({"role": "user", "content": "Now, apply the modifications to the following new script:\n\n" + prompt_code})
     _, text = LM.generate(messages_single_agent, max_tokens)
 
     print (f"\n############################################# LLM Response For Single Agent Code #############################################################")
@@ -461,10 +497,11 @@ if __name__ == "__main__":
     floor_plan_type = f"generic"
     ############################################ Extracting Objects and Locations #########################################################
     all_objects = get_ai2thor_objects(args.floor_plan)
+    obj_location_map = create_location_map(get_objs_state(all_objects, args.floor_plan))
     obj_extract_prompt_file = f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_task_desc_obj_extraction}" + ".txt"
     messages = parse_prompt_file(obj_extract_prompt_file)
     prompt = f"You are in a new floorplan, different from any previous ones. Please create a SINGLE plan using only the following objects and locations:"
-    prompt += f"\n{all_objects}"
+    prompt += f"{obj_location_map}"
     prompt += f"\nThe instruction: " + test_task
 
     print (f"\n\n******************************************************************************************************************************")
@@ -562,10 +599,8 @@ if __name__ == "__main__":
     properties = get_objs_props(extracted_objs_list)
     states = get_objs_state(extracted_objs_list, args.floor_plan)
     context = get_objs_context(extracted_objs_list)
-    decompose_code_prompt_file = open(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_decompse_code_set}" + ".txt", "r")
-    prompt = decompose_code_prompt_file.read()
-    decompose_code_prompt_file.close()
-    prompt += decomposed_plan
+    messages = parse_prompt_file(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_decompse_code_set}" + ".txt")
+    prompt = decomposed_plan
     prompt += f"\nproperties = "
     prompt += f"{properties}"
     prompt += f"\nstates = "
@@ -576,32 +611,14 @@ if __name__ == "__main__":
     prompt += f"{available_actions}"   
     prompt += f"\nall_objects_available = "
     prompt += f"{all_objects}"
-    prompt += '''
-    IMPORTANT: Some objects are created from a source object after certain actions.
-    For example, a Potato becomes PotatoSliced after the Slice action.
-    Object Types marked with (*) only appear after an interaction—for instance, an Apple becomes AppleSliced after slicing.
-    Objects with a (*) in their properties dictionary are not present in the scene initially but can be created after performing actions on existing objects.
-    However, toasting does not create a new object type.
-    For example, Bread remains Bread after being toasted; it does not become BreadToasted*.
-    Additionally, note that both PutObject and DropObject functions already include PickUpObject and GoToObject.
-    Therefore, DO NOT pick up, get, or go to the object.
-    '''
-    prompt+= f"\nIMPORTANT: Always use the CleanObject function when performing a cleaning action. The parameter <toolObjectId> must be provided and should correspond to a cleaning tool available in the scene. The parameter <canBeUsedUpDetergentId> is optional—include it only if there is a Detergent in the scene with 'canBeUsedUp'=True and 'UsedUp'=False. If no such Detergent exists, then <toolObjectId> alone is sufficient."
 
     print (f"\n\n*******************************************************************************************************************************")
     print ("Generating Decomposed Plans CODE...")
     # print (f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
-    messages = []
-    for i,split_prompt in enumerate(prompt.split('***')):
-        if i == 0:
-            messages.append({"role": "system", "content": split_prompt})
-        elif i%2 == 0:
-            messages.append({"role": "assistant", "content": split_prompt})
-        else:
-            messages.append({"role": "user", "content": split_prompt})
-    _, text = LM.generate(messages, max_tokens)   
+    messages.append({"role": "user", "content": prompt})
+    _, text = LM.generate(messages, max_tokens)
 
     # decomposed_plan_code = text
     print (f"\n############################################# LLM Response for Decomposed Plan #############################################################")

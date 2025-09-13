@@ -9,12 +9,21 @@ IMPORTANT: Do NOT include any object that is not in that floorplan.
 IMPORTANT: The output format must exactly match the previous assistance responses, with no extra text.
 
 Also, here are some special object interactions you need to consider:
-You don't need to fill water or coffee to the coffee machine to brew coffee.
-You should slice the food if possible before putting into other objects.
+- You don't need to fill water or coffee to the coffee machine to brew coffee.
+- You should slice the food if possible before putting into other objects.
 
 [USER]
 You are in a floorplan containing the following objects and locations:
-['Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup', 'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato']
+{
+    "Fridge": ["Egg", "Lettuce", "Apple", "Tomato"],
+    "Drawer": ["ButterKnife", "Fork", "Knife", "Spatula", "Spoon"],
+    "Cabinet": ["Bowl", "Cup", "Plate", "Pot"],
+    "CounterTop": ["Bread", "Kettle", "Microwave", "StoveBurner"],
+    "SinkBasin": ["DishSponge","SoapBottle"],
+    "GarbageCan": ["GarbageBag"],
+    "DiningTable": [],
+    "Floor": ["Stool"]
+}
 The instruction: I feel hungry, what would you plan to do?
 
 [ASSISTANT]
