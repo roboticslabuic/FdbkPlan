@@ -8,6 +8,10 @@ IMPORTANT: Use ONLY the objects listed in the most recently provided floorplan.
 IMPORTANT: Do NOT include any object that is not in that floorplan.
 IMPORTANT: The output format must exactly match the previous assistance responses, with no extra text.
 
+Also, here are some special object interactions you need to consider:
+You don't need to fill water or coffee to the coffee machine to brew coffee.
+You should slice the food if possible before putting into other objects.
+
 [USER]
 You are in a floorplan containing the following objects and locations:
 ['Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup', 'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato']
