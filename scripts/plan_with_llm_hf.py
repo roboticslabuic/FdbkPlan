@@ -293,8 +293,8 @@ def preprocess_code(code):
     return code
 
 def single_agent_code_prep(decomposed_plan_code, model_name):
-    print (f"\n\n*******************************************************************************************************************************")
-    print ("Preparing Code for Single Agent...")
+    print(f"\n\n*******************************************************************************************************************************")
+    print("Preparing Code for Single Agent...")
 
     single_agent_prompt_file = "./prompt_examples/floorplan_generic/task_single_agent.txt"
     prompt_code = preprocess_code(decomposed_plan_code)
@@ -304,7 +304,7 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
     messages_single_agent.append({"role": "user", "content": "Now, apply the modifications to the following new script:\n\n" + prompt_code})
     _, text = LM.generate(messages_single_agent, max_tokens)
 
-    print (f"\n############################################# LLM Response For Single Agent Code #############################################################")
+    print(f"\n############################################# LLM Response For Single Agent Code #############################################################")
     print(text)
 
     # Ask the user for feedback
@@ -327,8 +327,8 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
     return single_agent_plan
 
 def recursive_task_execution(prompt, messages, single_agent_plan, model_name, decomposed_plan_code):
-    print (f"\n\n*******************************************************************************************************************************")
-    print ("Testing Task Excection...")
+    print(f"\n\n*******************************************************************************************************************************")
+    print("Testing Task Excection...")
     executable_plan = ""
     # append the imports to the file
     start_file = Path("./resources/start_exe_test.py").read_text()
@@ -444,7 +444,7 @@ if __name__ == "__main__":
 
     set_model_config(args.hf_model)
 
-    print ("Model Config Set.")
+    print("Model Config Set.")
 
     if not os.path.isdir(f"./logs/"):
         os.makedirs(f"./logs/")
@@ -501,11 +501,12 @@ if __name__ == "__main__":
     obj_extract_prompt_file = f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_task_desc_obj_extraction}" + ".txt"
     messages = parse_prompt_file(obj_extract_prompt_file)
     prompt = f"You are in a new floorplan, different from any previous ones. Please create a SINGLE plan using only the following objects and locations:"
-    prompt += f"{obj_location_map}"
+    prompt += f"\n{obj_location_map}"
     prompt += f"\nThe instruction: " + test_task
 
-    print (f"\n\n******************************************************************************************************************************")
-    print ("Extracting Task Description and Objects Involved...")
+    print(f"\n\n******************************************************************************************************************************")
+    print("Extracting Task Description and Objects Involved...")
+    print(obj_location_map)
 
     messages.append({"role": "user", "content": prompt}) 
     _, text = LM.generate(messages, max_tokens)
@@ -514,7 +515,7 @@ if __name__ == "__main__":
 
     text_lines = text.splitlines()
     needed_objects_line = next((line for line in text_lines if 'needed_objects' in line), None)
-    print (f"\n############################################# LLM Response #################################################################")
+    print(f"\n############################################# LLM Response #################################################################")
     print(extracted_task_objs)
     extracted_objs_list = ast.literal_eval(needed_objects_line.split('=', 1)[1].strip())
 
@@ -547,9 +548,9 @@ if __name__ == "__main__":
     Therefore, DO NOT pick up, get, or go to the object.
     '''
 
-    print (f"\n\n*******************************************************************************************************************************")
-    print ("Generating Decomposed Plans...")
-    # print (f"\n############################################# Provided Prompt #############################################################")
+    print(f"\n\n*******************************************************************************************************************************")
+    print("Generating Decomposed Plans...")
+    # print(f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
     messages = [{"role": "system", "content": prompt.split('\n\n')[0]},
@@ -559,7 +560,7 @@ if __name__ == "__main__":
     _, text = LM.generate(messages, max_tokens)
 
     # decomposed_plan = text
-    print (f"\n############################################# LLM Response #############################################################")
+    print(f"\n############################################# LLM Response #############################################################")
     print(text)
     
     # Ask the user for feedback
@@ -612,16 +613,16 @@ if __name__ == "__main__":
     prompt += f"\nall_objects_available = "
     prompt += f"{all_objects}"
 
-    print (f"\n\n*******************************************************************************************************************************")
-    print ("Generating Decomposed Plans CODE...")
-    # print (f"\n############################################# Provided Prompt #############################################################")
+    print(f"\n\n*******************************************************************************************************************************")
+    print("Generating Decomposed Plans CODE...")
+    # print(f"\n############################################# Provided Prompt #############################################################")
     # print(prompt)
 
     messages.append({"role": "user", "content": prompt})
     _, text = LM.generate(messages, max_tokens)
 
     # decomposed_plan_code = text
-    print (f"\n############################################# LLM Response for Decomposed Plan #############################################################")
+    print(f"\n############################################# LLM Response for Decomposed Plan #############################################################")
     print(text)
 
     # Ask the user for feedback
@@ -654,8 +655,8 @@ if __name__ == "__main__":
     # decomposed_plan_code = text
 
     ############################################## Task Allocation #########################################################################
-    print (f"\n\n*******************************************************************************************************************************")
-    print ("Allocating Tasks...")
+    print(f"\n\n*******************************************************************************************************************************")
+    print("Allocating Tasks...")
     human_agent_affordance = agents_properties.Affordance(agents_properties.human_skills)
     robot_agent_affordance = agents_properties.Affordance(agents_properties.robot_skills)
     decomposed_plan_code = preprocess_code(decomposed_plan_code)
@@ -675,12 +676,12 @@ if __name__ == "__main__":
     prompt += f"\nagents = {agents}"
 
 
-    # print (prompt)         
+    # print(prompt)         
     messages = [{"role": "system", "content": allocate_prompt},
                 {"role": "user", "content": prompt}]
     _, text = LM.generate(messages, max_tokens) #0.30 #1800 for gpt4o
 
-    print (f"\n############################################# LLM Response #############################################################")
+    print(f"\n############################################# LLM Response #############################################################")
     print(text)
 
     # Ask the user for feedback
