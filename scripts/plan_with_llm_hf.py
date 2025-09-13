@@ -473,10 +473,7 @@ if __name__ == "__main__":
     # print (f"\n############################################# Provided Prompt #############################################################")
     # print (prompt)
 
-    messages = [{"role": "system", "content": prompt.split('\n\n')[0]},
-                {"role": "user", "content": prompt.split('\n\n')[1]},
-                {"role": "assistant", "content": prompt.split('\n\n')[2]},
-                {"role": "user", "content": prompt.split('\n\n')[3]}]
+    messages.append({"role": "user", "content": prompt})
     _, text = LM(messages, args.hf_model, max_tokens, frequency_penalty=decomp_freq_penalty, quantize=args.quantize, quantization_bits=args.quantization_bits)
 
     extracted_task_objs = text
