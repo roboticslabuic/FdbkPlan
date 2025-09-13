@@ -265,7 +265,7 @@ def single_agent_code_prep(decomposed_plan_code, model_name):
 
     # For Hugging Face models, use the message format converted to string
     messages_single_agent = parse_prompt_file(single_agent_prompt_file)
-    messages_single_agent.append({"role": "user", "content": prompt_code})
+    messages_single_agent.append({"role": "user", "content": "\n\nNow, apply the modifications to the following new script:\n\n" + prompt_code})
     _, text = LM.generate(messages_single_agent, max_tokens)
 
     print (f"\n############################################# LLM Response For Single Agent Code #############################################################")

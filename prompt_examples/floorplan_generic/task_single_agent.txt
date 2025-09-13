@@ -5,6 +5,9 @@ You will also add a global agents list at the top. At the very end of the script
 Do not provide any explanations, comments, or markdown formatting like ```python. Output only the raw, modified Python code.
 
 [USER]
+
+This is the example:
+
 def cook_egg():
     ### SubTask 1: Break the egg in the pan and fry it. ###
     # Open the fridge to access the egg.
@@ -25,6 +28,9 @@ def cook_egg():
     SwitchOff('StoveKnob')
 
 [ASSISTANT]
+
+This is the modified example:
+
 import time
 
 agents = [{'name': 'agent1', 'type': 'robot'}]
