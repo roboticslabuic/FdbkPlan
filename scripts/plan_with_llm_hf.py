@@ -565,7 +565,7 @@ if __name__ == "__main__":
     messages = parse_prompt_file(f"./prompt_examples/floorplan_{floor_plan_type}/{args.prompt_decompse_set}" + ".txt")
     # prompt += f"\nYou are in a floorplan containing the following objects and locations:"
     # prompt += f"\n{all_objects}\n"
-    prompt += extracted_task_objs
+    prompt = extracted_task_objs
     prompt += f"\nproperties = "
     prompt += f"{properties}"
     prompt += f"\nstates = "

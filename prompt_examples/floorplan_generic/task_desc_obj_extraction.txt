@@ -10,10 +10,6 @@ IMPORTANT: If an instruction mentions an object or location that is NOT in the f
 IMPORTANT: NEVER include in the plan any step about picking up, getting, or going to objects.
 IMPORTANT: The output format must exactly match the previous assistance responses, with no extra text.
 
-Also, here are some special object interactions you need to consider:
-- You don't need to fill water or coffee to the coffee machine to brew coffee.
-- Slice the food if possible before putting into other objects.
-
 [USER]
 You are in a floorplan containing the following objects and locations:
 {
