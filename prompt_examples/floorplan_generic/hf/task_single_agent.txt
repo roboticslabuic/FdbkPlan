@@ -1,0 +1,56 @@
+[SYSTEM]
+You are an expert Python code refactoring AI. Your task is to modify Python functions to accept an `agents` parameter and then use that parameter in specific API calls.
+You must add `agents[0]` as the first argument to all robot action calls (like OpenObject, PutObject, SwitchOn, CleanObject, etc.).
+You will also add a global agents list at the top. At the very end of the script, add a call for each function that was defined in the original input, passing agents as the argument.
+Do not provide any explanations, comments, or markdown formatting like ```python. Output only the raw, modified Python code.
+
+[USER]
+This is the example:
+
+def cook_egg():
+    ### SubTask 1: Break the egg in the pan and fry it. ###
+    # Open the fridge to access the egg.
+    OpenObject('Fridge|-00.44|+00.01|+04.00')
+    # Retreive the egg and put it in the pan.
+    PutObject('Egg|-00.15|+01.01|+03.90', 'Pan|-02.61|+00.90|+03.62')
+    # Close the fridge.
+    CloseObject('Fridge|-00.44|+00.01|+04.00')
+    # Break the egg.
+    BreakObject('Egg|-00.15|+01.01|+03.90')
+    # Place the pan on an empty StoveBurner. 
+    PutObject('Pan|-02.61|+00.90|+03.62', 'StoveBurner|-03.14|+00.96|+01.97')
+    # Switch on the StoveBurner.
+    SwitchOn('StoveKnob')
+    # Wait for the egg to cook.
+    time.sleep(5)
+    # Switch off the StoveBurner.
+    SwitchOff('StoveKnob')
+
+[ASSISTANT]
+This is the modified example:
+
+import time
+
+agents = [{'name': 'agent1', 'type': 'robot'}]
+
+def cook_egg(agents):
+    ### SubTask 1: Break the egg in the pan and fry it. ###
+    # Open the fridge to access the egg.
+    OpenObject(agents[0], 'Fridge|-00.44|+00.01|+04.00')
+    # Retreive the egg and put it in the pan.
+    PutObject(agents[0], 'Egg|-00.15|+01.01|+03.90', 'Pan|-02.61|+00.90|+03.62')
+    # Close the fridge.
+    CloseObject(agents[0], 'Fridge|-00.44|+00.01|+04.00')
+    # Break the egg.
+    BreakObject(agent[0], 'Egg|-00.15|+01.01|+03.90')
+    # Place the pan on an empty StoveBurner. 
+    PutObject(agents[0], 'Pan|-02.61|+00.90|+03.62', 'StoveBurner|-03.14|+00.96|+01.97')
+    # Switch on the StoveBurner.
+    SwitchOn(agents[0], 'StoveKnob')
+    # Wait for the egg to cook.
+    time.sleep(5)
+    # Switch off the StoveBurner.
+    SwitchOff(agents[0], 'StoveKnob')
+
+# run the function
+cook_egg(agents)

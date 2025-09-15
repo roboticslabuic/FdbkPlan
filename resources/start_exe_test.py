@@ -414,6 +414,7 @@ def PutObject(agent, put_obj, recp):
     # metadata = c.last_event.events[agent_id].metadata
     # agent_location = [metadata["agent"]["position"]["x"], metadata["agent"]["position"]["y"], metadata["agent"]["position"]["z"]]
     # dist_to_recp = 9999999 # distance b/w agent and the recp obj
+    print(recp)
     if '|' in recp:
         recp_obj_id = recp
     else:
@@ -730,3 +731,41 @@ def ThrowObject(agent, thrw_obj):
     if e:
         print(f"{e}. Failed to Throw {thrw_obj_id}.", file=sys.stderr)
         sys.exit(1)
+
+
+def DropObject(agent, drop_obj, recp):
+    print(f"\n**************************************** Executing SKILL DROP ***********************************************\n")
+    agent_name = agent['name']
+    agent_type = agent['type'] 
+    agent_id = int(agent_name[-1]) - 1
+    objs = list([obj["objectId"] for obj in c.last_event.metadata["objects"]])
+    objs_type = list([obj["objectType"] for obj in c.last_event.metadata["objects"]])
+    objs_center = list([obj["axisAlignedBoundingBox"]["center"] for obj in c.last_event.metadata["objects"]])
+    objs_receps = list([obj["receptacleObjectIds"] for obj in c.last_event.metadata["objects"]])
+
+    if '|' in recp:
+        recp_obj_id = recp
+    else:
+        for idx, obj_type in enumerate(objs_type):
+            match = re.search(recp, obj_type)
+            if match is not None:
+                recp_obj_id = objs[idx]
+                recp_obj_center = objs_center[idx]
+                obj_recep = objs_receps[idx]
+                if 'StoveBurner' in obj_type:
+                    if recp_obj_center != {'x': 0.0, 'y': 0.0, 'z': 0.0} and not obj_recep:
+                        break # find the first empty StoveBurner
+                else:
+                    if recp_obj_center != {'x': 0.0, 'y': 0.0, 'z': 0.0}:
+                        break # find the first instance
+                           
+    PickupObject(agent, drop_obj)
+    GoToObject(agent, recp_obj_id)
+    print ("Performing Action Drop ", drop_obj, recp_obj_id, ", ", agent_name, agent_type)
+    e = action_queue({'action':'DropHandObject', 'agent_id':agent_id})
+    if e:
+        print(f"{e}. Failed to Drop {drop_obj} on {recp_obj_id}", file=sys.stderr)
+        sys.exit(1)
+    time.sleep(1)
+
+

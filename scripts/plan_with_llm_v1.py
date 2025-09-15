@@ -324,7 +324,7 @@ if __name__ == "__main__":
     floor_plan_type = f"generic"
     ############################################ Extracting Objects and Locations #########################################################
     all_objects = get_ai2thor_objects(args.floor_plan)
-    obj_extract_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/{args.prompt_task_desc_obj_extraction}" + ".txt", "r")
+    obj_extract_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/gpt/{args.prompt_task_desc_obj_extraction}" + ".txt", "r")
     prompt = obj_extract_prompt_file.read()
     obj_extract_prompt_file.close()
     prompt += f"\n\nYou are in a different floorplan than previous, containing the following objects and locations:"
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     properties = get_objs_props(extracted_objs_list)
     states = get_objs_state(extracted_objs_list, args.floor_plan)
     context = get_objs_context(extracted_objs_list)
-    decompose_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/{args.prompt_decompse_set}" + ".txt", "r")
+    decompose_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/gpt/{args.prompt_decompse_set}" + ".txt", "r")
     prompt = decompose_prompt_file.read()
     decompose_prompt_file.close()
     # prompt += f"\nYou are in a floorplan containing the following objects and locations:"
@@ -429,7 +429,7 @@ if __name__ == "__main__":
     properties = get_objs_props(extracted_objs_list)
     states = get_objs_state(extracted_objs_list, args.floor_plan)
     context = get_objs_context(extracted_objs_list)
-    decompose_code_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/{args.prompt_decompse_code_set}" + ".txt", "r")
+    decompose_code_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/gpt/{args.prompt_decompse_code_set}" + ".txt", "r")
     prompt = decompose_code_prompt_file.read()
     decompose_code_prompt_file.close()
     prompt += decomposed_plan
@@ -520,7 +520,7 @@ if __name__ == "__main__":
         action['human_affordances'] = human_affordances[i]
         action['robot_affordances'] = robot_affordances[i]
 
-    allocate_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/{args.prompt_allocation_set}" + ".txt", "r")
+    allocate_prompt_file = open(f"./prompt_examples/{gpt_folder}/floorplan_{floor_plan_type}/gpt/{args.prompt_allocation_set}" + ".txt", "r")
     allocate_prompt = allocate_prompt_file.read()
     allocate_prompt_file.close()
     prompt = decomposed_plan_code

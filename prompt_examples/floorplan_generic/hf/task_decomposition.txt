@@ -1,0 +1,66 @@
+[SYSTEM]
+You are a high-level controller in a simulation environment.
+The environment description gives you complete knowledge of objects, locations, properties, states, and feasible actions.
+Your task is to revise a given plan so that it is feasible in the described environment.
+You may revise the plan by adding subtasks, removing subtasks, or modifying existing subtasks.
+
+IMPORTANT:
+- List ALL objects required to perform the subtasks.
+- Use ONLY items listed in all_objects_available. Any other item must not appear in the plan.
+- The output format MUST exactly match the previous assistant responses, with no extra text.
+- Some objects are created after actions (e.g., Potato → PotatoSliced after Slice).
+- Object Types marked with (*) appear only after an interaction (e.g., Apple → AppleSliced).
+- Objects with (*) in their properties dictionary are not present initially but may be created through actions.
+- Toasting does not create a new object type (e.g., Bread stays Bread, not BreadToasted*).
+- Toaster accepts only sliced breads.
+- To brew coffee, simply turn on the CoffeeMachine with a Mug inside; do not add water or coffee manually.
+- Food should be sliced if possible before being placed into other objects.
+- NEVER include any step about picking up, getting, or going to objects in the plan.
+- All subtasks must be physically and logically feasible in a real-world setting.
+  (Example: Do not throw a sofa into a garbage can, do not put a desk lamp into a small box.)
+- Only plan actions that make sense for the object type (e.g., slice food, clean dirty items, cook cookable items).
+
+[USER]
+This is the example:
+
+Task Description: Make a meal with egg, tomato, and bread.
+SubTask 1: Fry the egg in a pan.
+SubTask 2: Serve the egg and the tomato on the plate.
+needed_objects = ['Egg' ,'Tomato', 'Bread', 'Pan', 'Plate']
+properties = {
+    'Egg': ['isBroken', 'breakable', 'isSliced', 'sliceable', 'pickupable', 'isPickedUp'], 
+    'EggCracked*': ['temperature', 'isCooked', 'cookable', 'pickupable', 'isPickedUp'],
+    'Tomato': ['sliceable', 'pickupable', 'isSliced', 'isPickedUp'], 
+    'TomatoSliced*': ['pickupable', 'isPickedUp'], 
+    'Bread': ['sliceable', 'pickupable', 'isSliced', 'isPickedUp'], 
+    'BreadSliced*': ['temperature', 'isCooked', 'cookable', 'pickupable', 'isPickedUp'], 
+    'Pan': ['receptacleObjectIds', 'isDirty', 'dirtyable', 'receptacle', 'pickupable', 'isPickedUp'], 
+    'Plate': ['receptacleObjectIds', 'isDirty', 'dirtyable', 'isBroken', 'receptacle', 'breakable', 'pickupable', 'isPickedUp']
+    }
+states = [
+    {'objectId': 'Egg|-00.15|+01.01|+03.90', 'parentReceptacles': ['Fridge|-00.44|+00.01|+04.00'], 'isBroken': False, 'breakable': True, 'isSliced': False, 'sliceable': True, 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'Tomato|-02.30|+00.96|+03.80', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'sliceable': True, 'pickupable': True, 'isSliced': False, 'isPickedUp': False},
+    {'objectId': 'Bread|-01.52|+00.96|+00.28', 'parentReceptacles': ['DiningTable|-01.40|+00.01|+00.24'], 'sliceable': True, 'pickupable': True, 'isSliced': False, 'isPickedUp': False},
+    {'objectId': 'Pan|-02.61|+00.90|+03.62', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'receptacleObjectIds': [], 'isDirty': False, 'dirtyable': True, 'receptacle': True, 'pickupable': True, 'isPickedUp': False},
+    {'objectId': 'Plate|-03.01|+00.90|+03.68', 'parentReceptacles': ['CounterTop|-03.38|+00.95|+03.34'], 'receptacleObjectIds': [], 'isDirty': True, 'dirtyable': True, 'isBroken': False, 'receptacle': True, 'breakable': True, 'pickupable': True, 'isPickedUp': False}
+    ]
+context_interactions = [
+    {'objectType': 'Egg', 'contextual_interactions': 'Using the Slice action or the Break action will change the Egg to an EggCracked object. Dropping or Throwing the Egg with enough force will also automatically Break the egg into an EggCracked.'},
+    {'objectType': 'Tomato', 'contextual_interactions': 'When Sliced, will create multiple TomatoSliced objects.'},
+    {'objectType': 'Pan', 'contextual_interactions': 'If in the Dirty state, will automatically become Clean if moved under running water.'},
+    {'objectType': 'Plate', 'contextual_interactions': 'Will automatically break if subjected to enough force. Not all Plates are breakable (Plastic-Unbreakable vs Glass-Breakable vs Ceramic-Breakable). If in the Dirty state, will automatically become Clean if moved under running water.'}
+    ]
+all_objects_available = [
+                        'Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup',
+                        'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato'
+                        ]
+
+[ASSISTANT]
+This is the modified example:
+
+Task Description: Make a meal with egg, tomato, and bread.
+SubTask 1: Break the egg in the pan and fry it on the stove.
+SubTask 2: Slice the bread and the tomato.
+SubTask 3: Wash the plate in the Sink or SinkBasin.
+SubTask 4: Serve the egg and the tomato on the plate.
+needed_objects = ['Egg' , 'EggCracked', 'Tomato', 'TomatoSliced', 'Bread', 'BreadSliced', 'Knife', 'Pan', 'Plate', 'StoveBurner', 'Sink']

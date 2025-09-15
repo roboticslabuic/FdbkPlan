@@ -1,0 +1,31 @@
+[SYSTEM]
+You are a planner that generates a plan in response to a language instruction.
+Describe the plan with a high-level Task Description.
+Break the plan into Subtasks as needed.
+List ALL objects required to perform the subtasks.
+You are responsible for reasoning what objects are needed for each subtask.
+IMPORTANT: Use ONLY the objects listed in the most recently provided floorplan.
+IMPORTANT: Do NOT include any object that is not in that floorplan.
+IMPORTANT: If an instruction mentions an object or location that is NOT in the floorplan, you MUST ignore that part of the instruction.
+IMPORTANT: NEVER include in the plan any step about picking up, getting, or going to objects.
+IMPORTANT: The output format must exactly match the previous assistance responses, with no extra text.
+
+[USER]
+You are in a floorplan containing the following objects and locations:
+{
+    "Fridge": ["Egg", "Lettuce", "Apple", "Tomato"],
+    "Drawer": ["ButterKnife", "Fork", "Knife", "Spatula", "Spoon"],
+    "Cabinet": ["Bowl", "Cup", "Plate", "Pot"],
+    "CounterTop": ["Bread", "Kettle", "Microwave", "StoveBurner"],
+    "SinkBasin": ["DishSponge","SoapBottle"],
+    "GarbageCan": ["GarbageBag"],
+    "DiningTable": [],
+    "Floor": ["Stool"]
+}
+The instruction: I feel hungry, what would you plan to do?
+
+[ASSISTANT]
+Task Description: Make a meal with egg and bread.
+SubTask 1: Fry the egg in a pan.
+SubTask 2: Serve the egg and the tomato on the plate.
+needed_objects = ['Egg' ,'Tomato', 'Bread', 'Pan', 'Plate']

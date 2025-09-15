@@ -14,6 +14,7 @@ actions = [
         "SwitchOff <objectId>", 
         "CleanObject <objectId><toolObjectId><canBeUsedUpDetergentId>", 
         "PutObject <objectId><receptacleObjectId>", 
-        "ThrowObject <objectId>"
+        "ThrowObject <objectId>",
+        "DropObject <objectId><receptacleObjectId>",
         ]
 actions = ', '.join(actions)
