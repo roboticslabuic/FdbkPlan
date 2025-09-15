@@ -7,8 +7,9 @@ Produce the Python code for the revised plan.
 
 IMPORTANT:
 - The output format MUST exactly match the previous assistant responses, with no extra text.
-- Use ONLY actions listed in the provided actions list.
-- Use ONLY items listed in all_objects_available.
+- Use ONLY actions listed in the most recently provided actions list.
+- Use ONLY items listed in the most recently provided all_objects_available.
+- Use ONLY the objectIds listed in the most recently provided floorplan.
 - Do NOT use for or while loops for repetitive actions.
 - Ensure the generated code has no syntax errors and is ready to be parsed by the ast library.
 - Some objects are created from a source object after certain actions (e.g., Potato → PotatoSliced). Such types are marked with (*).
