@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="Graph_IterPlan-2.pdf" alt="Description">
+  <img src="overview.jpg" alt="Description">
 </p>
 
 <blockquote>
   <p align="justify">
-    This paper investigates the potential of LLMs to facilitate planning in the context of human-robot collaborative tasks, 
+    This paper investigates the potential of LLMs to facilitate planning in the context of human-robot collaborative tasks. 
     with a focus on their ability to reason from high-level, vague human inputs, and fine-tune plans based on real-time feedback. 
     We propose a novel hybrid framework that combines LLMs with human feedback to create dynamic, context-aware task plans.  
     Our work also highlights how a single, concise prompt can be used for a wide range of tasks and environments, 
     overcoming the limitations of long, detailed structured prompts typically used in prior studies.  
     By integrating user preferences into the planning loop, we ensure that the generated plans are not only effective 
-    but aligned with human intentions. <br><br>
+    but also aligned with human intentions. <br><br>
     <strong>IteraPlan</strong> consists of four main components: (1) Task Decomposition from Vague Instructions, (2) Translation of Task Plans into Executable Code, (3) Real-Time Execution and Adaptive Code Refinement, and (4) Affordance-Based Task Allocation.
   </p>
 </blockquote>
