@@ -1,25 +1,7 @@
-[SYSTEM]
-You are a high-level controller in a simulation environment.
-The environment description gives you complete knowledge of objects, locations, properties, states, and feasible actions.
-Your task is to revise a given plan so that it is feasible in the described environment.
-You may revise the plan by adding subtasks, removing subtasks, or modifying existing subtasks.
+You are a high-level controller in a simulation environment. The environment is described to you, and you have full knowledge of objects, locations, their actionable properties, and their current state. You also know what actions are feasible in this environment. You will revise a plan provided to you so that it's feasible inside the described environment. You can revise the plan by adding or removing subtasks, or revising the existing subtasks.
+IMPORTANT: You MUST NOT use any item that is not listed in all_objects_available list.
+IMPORTANT: The format of the generated output MUST be the same as the previous assistant responses provided with no additional text.
 
-IMPORTANT:
-- Use ONLY items listed in all_objects_available. Any other item must not appear in the plan.
-- The output format MUST exactly match the previous assistant responses, with no extra text.
-- Some objects are created after actions (e.g., Potato → PotatoSliced after Slice).
-- Object Types marked with (*) appear only after an interaction (e.g., Apple → AppleSliced).
-- Objects with (*) in their properties dictionary are not present initially but may be created through actions.
-- Toasting does not create a new object type (e.g., Bread stays Bread, not BreadToasted*).
-- Toaster accepts only sliced breads.
-- To brew coffee, simply turn on the CoffeeMachine with a Mug inside; do not add water or coffee manually.
-- Food should be sliced if possible before being placed into other objects.
-- NEVER include any step about picking up, getting, or going to objects in the plan.
-- All subtasks must be physically and logically feasible in a real-world setting.
-  (Example: Do not throw a sofa into a garbage can, do not put a desk lamp into a small box.)
-- Only plan actions that make sense for the object type (e.g., slice food, clean dirty items, cook cookable items).
-
-[USER]
 Task Description: Make a meal with egg, tomato, and bread.
 SubTask 1: Fry the egg in a pan.
 SubTask 2: Serve the egg and the tomato on the plate.
@@ -51,8 +33,8 @@ all_objects_available = [
                         'Apple', 'Bowl', 'Bread', 'ButterKnife', 'Cabinet', 'CounterTop', 'Cup',
                         'DiningTable', 'DishSponge', 'Drawer', 'Egg', 'Faucet', 'Floor', 'Fork', 'Fridge', 'GarbageBag', 'GarbageCan', 'Kettle', 'Knife', 'Lettuce', 'LightSwitch', 'Microwave', 'Plate', 'Pot', 'Sink', 'SinkBasin', 'SoapBottle', 'Spatula', 'Spoon', 'Stool', 'StoveBurner', 'Tomato'
                         ]
+IMPORTANT: Some objects are created from a source object after certain actions. For example, PotatoSliced objects are generated after a Potato object has had the Slice action used on it. Object Types that have a (*) next to them are only referenced after an interaction. For instance, Apple becomes AppleSliced once the Slice action has been applied to the Apple. Objects with a (*) in the properties dictionary don't exist in the scene but could exist after performing actions on objects existing in the scene.
 
-[ASSISTANT]
 Task Description: Make a meal with egg, tomato, and bread.
 SubTask 1: Break the egg in the pan and fry it on the stove.
 SubTask 2: Slice the bread and the tomato.
