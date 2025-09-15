@@ -16,7 +16,6 @@ IMPORTANT:
 - PutObject and DropObject already include PickUpObject and GoToObject.
 - ThrowObject throws an item randomly; you cannot specify a target.
 - Always use CleanObject for cleaning actions. It automatically picks up the cleaning tool, so do not include a separate step for that.
-- Always use CleanObject for cleaning actions (it handles picking up the cleaning tool).
 - Every action must be physically and logically feasible.
   (Example: Do not place oversized objects into small containers, do not clean objects that are not cleanable, do not attempt to pour non-existent liquids.)
 

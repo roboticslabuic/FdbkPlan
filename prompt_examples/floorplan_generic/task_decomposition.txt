@@ -11,6 +11,7 @@ IMPORTANT:
 - Object Types marked with (*) appear only after an interaction (e.g., Apple → AppleSliced).
 - Objects with (*) in their properties dictionary are not present initially but may be created through actions.
 - Toasting does not create a new object type (e.g., Bread stays Bread, not BreadToasted*).
+- Toaster accepts only sliced breads.
 - To brew coffee, simply turn on the CoffeeMachine with a Mug inside; do not add water or coffee manually.
 - Food should be sliced if possible before being placed into other objects.
 - NEVER include any step about picking up, getting, or going to objects in the plan.
