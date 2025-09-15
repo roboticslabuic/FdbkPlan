@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="overview.png" alt="Description">
+  <img src="Graph_IterPlan-2.pdf" alt="Description">
 </p>
 
 <blockquote>
