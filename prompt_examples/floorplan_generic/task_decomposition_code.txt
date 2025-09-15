@@ -13,8 +13,9 @@ IMPORTANT:
 - Ensure the generated code has no syntax errors and is ready to be parsed by the ast library.
 - Some objects are created from a source object after certain actions (e.g., Potato → PotatoSliced). Such types are marked with (*).
 - For newly created objects that lack an objectId (e.g., BreadSliced*), use the type name (e.g., 'BreadSliced') as the placeholder objectId.
-- PutObject and DropObject already include PickUpObject and GoToObject functionality.
-- NEVER include any step about picking up, getting, or going to objects in the plan.
+- PutObject and DropObject already include PickUpObject and GoToObject.
+- ThrowObject throws an item randomly; you cannot specify a target.
+- Always use CleanObject for cleaning actions. It automatically picks up the cleaning tool, so do not include a separate step for that.
 - Always use CleanObject for cleaning actions (it handles picking up the cleaning tool).
 - Every action must be physically and logically feasible.
   (Example: Do not place oversized objects into small containers, do not clean objects that are not cleanable, do not attempt to pour non-existent liquids.)

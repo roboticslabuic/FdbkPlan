@@ -13,10 +13,7 @@ IMPORTANT:
 - Toasting does not create a new object type (e.g., Bread stays Bread, not BreadToasted*).
 - To brew coffee, simply turn on the CoffeeMachine with a Mug inside; do not add water or coffee manually.
 - Food should be sliced if possible before being placed into other objects.
-- ThrowObject throws an item randomly; you cannot specify a target.
-- PutObject and DropObject already include PickUpObject and GoToObject.
-- Do not include any step about picking up, getting, or going to objects in the plan.
-- Always use CleanObject for cleaning actions. It automatically picks up the cleaning tool, so do not include a separate step for that.
+- NEVER include any step about picking up, getting, or going to objects in the plan.
 - All subtasks must be physically and logically feasible in a real-world setting.
   (Example: Do not throw a sofa into a garbage can, do not put a desk lamp into a small box.)
 - Only plan actions that make sense for the object type (e.g., slice food, clean dirty items, cook cookable items).
